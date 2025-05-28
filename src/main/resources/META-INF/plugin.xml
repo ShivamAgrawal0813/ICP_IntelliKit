@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+    <id>com.icp.intellij</id>
+    <name>ICP Language Support</name>
+    <vendor>ICP Foundation</vendor>
+    <description><![CDATA[
+        Provides first-class support for Internet Computer Protocol (ICP) languages in JetBrains IDEs.
+        Features include:
+        <ul>
+            <li>Motoko language support with syntax highlighting and code completion</li>
+            <li>ICP-compatible Rust support</li>
+            <li>DFX project integration</li>
+            <li>Canister deployment utilities</li>
+        </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Language Support -->
+        <fileType
+            name="Motoko"
+            language="Motoko"
+            fieldName="MOTOKO"
+            implementationClass="com.icp.intellij.motoko.MotokoFileType"
+            extensions="mo"/>
+            
+        <lang.parserDefinition
+            language="Motoko"
+            implementationClass="com.icp.intellij.motoko.parser.MotokoParserDefinition"/>
+            
+        <lang.syntaxHighlighterFactory
+            language="Motoko"
+            implementationClass="com.icp.intellij.motoko.highlighter.MotokoSyntaxHighlighterFactory"/>
+            
+        <!-- Project Structure -->
+        <projectStructureDetector
+            implementation="com.icp.intellij.project.DfxProjectStructureDetector"/>
+    </extensions>
+</idea-plugin> 
