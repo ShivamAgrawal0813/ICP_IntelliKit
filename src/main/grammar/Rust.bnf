@@ -1,0 +1,173 @@
+{
+  parserClass="com.icp.intellikit.parser.RustParser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  psiClassPrefix="Rust"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.icp.intellikit.psi"
+  psiImplPackage="com.icp.intellikit.psi.impl"
+  elementTypeHolderClass="com.icp.intellikit.psi.RustTypes"
+  elementTypeClass="com.icp.intellikit.psi.RustElementType"
+  tokenTypeClass="com.icp.intellikit.psi.RustTokenType"
+  factoryClass="com.icp.intellikit.psi.RustTypes.Factory"
+  tokens=[
+    space='regexp:\s+'
+    comment='regexp://.*'
+    number='regexp:\d+(\.\d*)?'
+    string='regexp:"([^"\\]|\\.)*"'
+    id='regexp:[a-zA-Z_][a-zA-Z0-9_]*'
+    
+    // Keywords
+    fn='fn'
+    struct='struct'
+    impl='impl'
+    trait='trait'
+    use='use'
+    pub='pub'
+    mod='mod'
+    let='let'
+    mut='mut'
+    return='return'
+    if='if'
+    else='else'
+    loop='loop'
+    while='while'
+    for='for'
+    in='in'
+    match='match'
+    type='type'
+    
+    // Types
+    i32='i32'
+    i64='i64'
+    u32='u32'
+    u64='u64'
+    f32='f32'
+    f64='f64'
+    bool='bool'
+    str='str'
+    String='String'
+    
+    // Literals
+    true='true'
+    false='false'
+    
+    // Operators
+    plus='+'
+    minus='-'
+    star='*'
+    slash='/'
+    eq='=='
+    neq='!='
+    lt='<'
+    lte='<='
+    gt='>'
+    gte='>='
+    
+    // Punctuation
+    lparen='('
+    rparen=')'
+    lbrace='{'
+    rbrace='}'
+    lbrack='['
+    rbrack=']'
+    semicolon=';'
+    comma=','
+    colon=':'
+    arrow='->'
+    dot='.'
+    double_colon='::'
+    
+    // Additional tokens needed by RustParser.kt
+    MOD_KW = 'mod'
+    FN_KW = 'fn'
+    STRUCT_KW = 'struct'
+    IMPL_KW = 'impl'
+    TRAIT_KW = 'trait'
+    USE_KW = 'use'
+    LBRACE = '{'
+    RBRACE = '}'
+    LPAREN = '('
+    RPAREN = ')'
+    ARROW = '->'
+    IDENTIFIER = 'regexp:[a-zA-Z_][a-zA-Z0-9_]*'
+    DOUBLE_COLON = '::'
+  ]
+}
+
+// Root element
+rustFile ::= item_*
+private item_ ::= (module_declaration | function_declaration | struct_declaration | impl_declaration | trait_declaration | use_declaration | type_declaration);
+
+// Module declarations
+module_declaration ::= pub? mod id lbrace module_body rbrace
+module_body ::= item_*
+
+// Function declarations
+function_declaration ::= pub? fn id lparen [parameter_list] rparen [arrow type_expression] function_body
+parameter_list ::= parameter (comma parameter)*
+parameter ::= id colon type_expression
+function_body ::= lbrace statement* rbrace
+
+// Struct declarations
+struct_declaration ::= pub? struct id lbrace [field_list] rbrace
+field_list ::= field (comma field)*
+field ::= pub? id colon type_expression
+
+// Implementation blocks
+impl_declaration ::= impl [type_parameters] type_expression lbrace impl_item* rbrace
+type_parameters ::= lt [type_parameter (comma type_parameter)*] gt
+type_parameter ::= id [colon trait_bound]
+trait_bound ::= id (plus id)*
+impl_item ::= pub? fn id lparen [parameter_list] rparen [arrow type_expression] function_body
+
+// Trait declarations
+trait_declaration ::= pub? trait id [type_parameters] lbrace trait_item* rbrace
+trait_item ::= fn id lparen [parameter_list] rparen [arrow type_expression] semicolon
+
+// Use declarations
+use_declaration ::= pub? use use_path semicolon
+use_path ::= id (double_colon id)*
+
+// Type declarations
+type_declaration ::= pub? type id eq type_expression semicolon
+type_expression ::= primitive_type | struct_type | tuple_type | array_type | reference_type | function_type
+primitive_type ::= i32 | i64 | u32 | u64 | f32 | f64 | bool | str | String
+struct_type ::= id [type_arguments]
+type_arguments ::= lt [type_expression (comma type_expression)*] gt
+tuple_type ::= lparen [type_expression (comma type_expression)*] rparen
+array_type ::= lbrack type_expression semicolon expression rbrack
+reference_type ::= ampersand mut? type_expression
+function_type ::= fn lparen [type_expression (comma type_expression)*] rparen arrow type_expression
+
+// Statements
+statement ::= expression_statement | let_statement | return_statement | if_statement | loop_statement | while_statement | for_statement | match_statement
+expression_statement ::= expression semicolon
+let_statement ::= let mut? id [colon type_expression] eq expression semicolon
+return_statement ::= return expression? semicolon
+if_statement ::= if expression block [else (if_statement | block)]
+loop_statement ::= loop block
+while_statement ::= while expression block
+for_statement ::= for id in expression block
+match_statement ::= match expression lbrace match_arm* rbrace
+match_arm ::= pattern arrow (block | expression) comma?
+block ::= lbrace statement* rbrace
+
+// Expressions
+expression ::= literal | id | binary_expression | call_expression | field_expression | method_call_expression | array_expression | tuple_expression | struct_expression
+literal ::= string | number | true | false
+binary_expression ::= expression operator expression
+operator ::= plus | minus | star | slash | eq | neq | lt | lte | gt | gte
+call_expression ::= expression lparen [expression (comma expression)*] rparen
+field_expression ::= expression dot id
+method_call_expression ::= expression dot id lparen [expression (comma expression)*] rparen
+array_expression ::= lbrack [expression (comma expression)*] rbrack
+tuple_expression ::= lparen [expression (comma expression)*] rparen
+struct_expression ::= id lbrace [field_initializer (comma field_initializer)*] rbrace
+field_initializer ::= id colon expression
+
+// Additional rules needed by RustParser.kt
+parameters ::= /* ... */
+path ::= /* ... */
+struct_body ::= /* ... */
+impl_body ::= /* ... */
+trait_body ::= /* ... */

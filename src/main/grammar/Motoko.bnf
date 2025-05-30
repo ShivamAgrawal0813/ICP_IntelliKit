@@ -1,0 +1,115 @@
+{
+  parserClass="com.icp.intellij.motoko.parser.MotokoParser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  psiClassPrefix="Motoko"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.icp.intellij.motoko.psi"
+  psiImplPackage="com.icp.intellij.motoko.psi.impl"
+  elementTypeHolderClass="com.icp.intellij.motoko.psi.MotokoTypes"
+  elementTypeClass="com.icp.intellij.motoko.psi.MotokoElementType"
+  tokenTypeClass="com.icp.intellij.motoko.psi.MotokoTokenType"
+  factoryClass="com.icp.intellij.motoko.psi.MotokoFactory"
+  tokens=[
+    space='regexp:\s+'
+    comment='regexp://.*|/\*([^*]|\*+[^*/])*\*+/'
+    number='regexp:\d+(\.\d*)?'
+    string='regexp:"([^"\\]|\\.)*"'
+    id='regexp:[a-zA-Z_][a-zA-Z0-9_]*'
+    
+    // Keywords
+    actor='actor'
+    module='module'
+    type='type'
+    func='func'
+    public='public'
+    private='private'
+    shared='shared'
+    let='let'
+    var='var'
+    return='return'
+    if='if'
+    else='else'
+    loop='loop'
+    
+    // Types
+    nat='Nat'
+    int='Int'
+    bool='Bool'
+    text='Text'
+    float='Float'
+    
+    // Literals
+    true='true'
+    false='false'
+    null='null'
+    
+    // Operators
+    plus='+'
+    minus='-'
+    star='*'
+    slash='/'
+    eq='=='
+    neq='!='
+    lt='<'
+    lte='<='
+    gt='>'
+    gte='>='
+    
+    // Punctuation
+    lparen='('
+    rparen=')'
+    lbrace='{'
+    rbrace='}'
+    lbrack='['
+    rbrack=']'
+    semicolon=';'
+    comma=','
+    colon=':'
+    arrow='->'
+  ]
+}
+
+// Root element
+motokoFile ::= item_*
+private item_ ::= (actor_declaration | module_declaration | type_declaration | function_declaration | variable_declaration | expression | comment);
+
+// Top-level declarations
+actor_declaration ::= actor id lbrace actor_body rbrace
+actor_body ::= (function_declaration | variable_declaration | type_declaration)*
+
+module_declaration ::= module id lbrace module_body rbrace
+module_body ::= (function_declaration | variable_declaration | type_declaration)*
+
+// Type declarations
+type_declaration ::= type id eq type_expression semicolon?
+
+// Function declarations
+function_declaration ::= func id lparen parameter_list? rparen colon type_expression lbrace function_body rbrace
+parameter_list ::= parameter (comma parameter)*
+parameter ::= id colon type_expression
+function_body ::= statement*
+
+// Variable declarations
+variable_declaration ::= (let | var) id (colon type_expression)? (eq expression)? semicolon?
+
+// Statements
+statement ::= expression_statement | return_statement | if_statement | loop_statement
+expression_statement ::= expression semicolon?
+return_statement ::= return expression? semicolon?
+if_statement ::= if expression lbrace statement* rbrace (else lbrace statement* rbrace)?
+loop_statement ::= loop lbrace statement* rbrace
+
+// Expressions
+expression ::= binary_expression | call_expression | literal | id
+binary_expression ::= expression (plus | minus | star | slash | eq | neq | lt | lte | gt | gte) expression
+call_expression ::= id lparen (expression (comma expression)*)? rparen
+literal ::= number | string | true | false | null
+
+// Type expressions
+type_expression ::= primitive_type | function_type | object_type | array_type | type_reference
+primitive_type ::= nat | int | bool | text | float
+function_type ::= lparen (type_expression (comma type_expression)*)? rparen arrow type_expression
+object_type ::= lbrace (field_type (comma field_type)*)? rbrace
+field_type ::= id colon type_expression
+array_type ::= lbrack type_expression rbrack
+type_reference ::= id
