@@ -3,7 +3,6 @@ package com.icp.intellij.motoko.parser
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
 import com.intellij.lang.PsiParser
-import com.intellij.lexer.FlexAdapter
 import com.intellij.lexer.Lexer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
@@ -12,28 +11,15 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import com.icp.intellij.motoko.MotokoLanguage
-import com.icp.intellij.motoko.psi.MotokoFile
-import com.icp.intellij.motoko.psi.MotokoTokenTypes
-import com.icp.intellij.motoko.psi.MotokoTypes
-import java.io.StringReader
-import com.icp.intellij.motoko.lexer.MotokoLexer
+import com.icp.intellij.motoko.lexer.MotokoLexerWrapper
 import com.icp.intellij.motoko.psi.MotokoFactory
+import com.icp.intellij.motoko.psi.MotokoFile
+import com.icp.intellij.motoko.psi.MotokoTypes
+import com.intellij.lexer.FlexAdapter
 
 class MotokoParserDefinition : ParserDefinition {
     override fun createLexer(project: Project): Lexer {
-        return FlexAdapter(MotokoLexer(java.io.StringReader("")))
-    }
-
-    override fun getWhitespaceTokens(): TokenSet {
-        return MotokoTokenTypes.WHITESPACE_TOKENS
-    }
-
-    override fun getCommentTokens(): TokenSet {
-        return MotokoTokenTypes.COMMENT_TOKENS
-    }
-
-    override fun getStringLiteralElements(): TokenSet {
-        return MotokoTokenTypes.STRING_LITERALS
+        return FlexAdapter(MotokoLexerWrapper())
     }
 
     override fun createParser(project: Project): PsiParser {
@@ -44,16 +30,20 @@ class MotokoParserDefinition : ParserDefinition {
         return FILE
     }
 
-    override fun createFile(viewProvider: FileViewProvider): PsiFile {
-        return MotokoFile(viewProvider)
+    override fun getCommentTokens(): TokenSet {
+        return TokenSet.create(MotokoTypes.LINE_COMMENT, MotokoTypes.BLOCK_COMMENT)
     }
 
-    override fun spaceExistenceTypeBetweenTokens(left: ASTNode, right: ASTNode): ParserDefinition.SpaceRequirements {
-        return ParserDefinition.SpaceRequirements.MAY
+    override fun getStringLiteralElements(): TokenSet {
+        return TokenSet.create(MotokoTypes.STRING_LITERAL)
     }
 
     override fun createElement(node: ASTNode): PsiElement {
         return MotokoFactory.createElement(node)
+    }
+
+    override fun createFile(viewProvider: FileViewProvider): PsiFile {
+        return MotokoFile(viewProvider)
     }
 
     companion object {

@@ -55,8 +55,8 @@ tasks {
     
     // Grammar-Kit tasks
     val generateMotokoLexer = register<org.jetbrains.grammarkit.tasks.GenerateLexerTask>("generateMotokoLexer") {
-        sourceFile.set(file("src/main/grammar/Motoko.flex"))
-        targetOutputDir.set(file("src/main/gen/com/icp/intellij/motoko/parser"))
+        sourceFile.set(file("src/main/kotlin/com/icp/intellij/motoko/lexer/MotokoLexer.flex"))
+        targetOutputDir.set(file("src/main/gen/com/icp/intellij/motoko/lexer"))
         purgeOldFiles.set(true)
     }
     
@@ -84,10 +84,15 @@ tasks {
     
     compileJava {
         dependsOn(generateMotokoLexer, generateMotokoParser)
+        options.compilerArgs.addAll(listOf("--enable-preview"))
     }
     
     compileKotlin {
-        dependsOn(generateMotokoLexer, generateMotokoParser)
+        dependsOn(compileJava)
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs = listOf("-Xjvm-default=all")
+        }
     }
 
     processResources {
@@ -106,6 +111,32 @@ tasks {
             resources.srcDirs("src/main/resources")
         }
     }
+
+    // Configure compilation tasks
+    compileJava {
+        dependsOn(generateMotokoLexer, generateMotokoParser)
+        options.release.set(17)
+    }
+    compileKotlin {
+        dependsOn(generateMotokoLexer, generateMotokoParser)
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs = listOf("-Xjvm-default=all")
+            sourceSets["main"].kotlin.srcDirs("src/main/gen")
+        }
+    }
+
+    // Configure test compilation
+    compileTestKotlin {
+        kotlinOptions {
+            jvmTarget = "17"
+            freeCompilerArgs = listOf("-Xjvm-default=all")
+        }
+    }
+    
+    compileTestJava {
+        options.release.set(17)
+    }
 }
 
 dependencies {
@@ -117,25 +148,4 @@ dependencies {
     // ANTLR dependencies
     implementation("org.antlr:antlr4:4.13.1")
     implementation("org.antlr:antlr4-runtime:4.13.1")
-}
-
-tasks {
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "17"
-            freeCompilerArgs = listOf("-Xjvm-default=all")
-        }
-    }
-    compileJava {
-        options.release.set(17)
-    }
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "17"
-            freeCompilerArgs = listOf("-Xjvm-default=all")
-        }
-    }
-    compileTestJava {
-        options.release.set(17)
-    }
 }
